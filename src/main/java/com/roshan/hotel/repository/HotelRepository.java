@@ -1,4 +1,10 @@
 package com.roshan.hotel.repository;
 
-public class HotelRepository {
+import com.roshan.hotel.domain.Hotel;
+
+public interface HotelRepository {
+
+    void save(Hotel hotel);
+    Hotel findById(long id);
+
 }
