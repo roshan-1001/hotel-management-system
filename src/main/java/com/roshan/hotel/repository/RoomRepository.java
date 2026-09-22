@@ -11,6 +11,10 @@ import java.util.Optional;
 
 public interface RoomRepository extends JpaRepository<Room, Integer> {
 
+    //Normal read - test
+    Optional<Room> findByNumber(int number);
+
+    //Pessimistic read - production
     @Lock(LockModeType.PESSIMISTIC_WRITE)
     @Query("""
             SELECT r

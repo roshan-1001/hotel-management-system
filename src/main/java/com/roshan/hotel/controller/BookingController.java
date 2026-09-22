@@ -32,6 +32,7 @@ public class BookingController {
 
     @PostMapping
     public ResponseEntity<BookingResponse> createBooking(
+            @RequestHeader("Idempotency-Key") String idempotencyKey,
             @Valid @RequestBody CreateBookingRequest request
             ){
         BookingResponse response = bookingService.createBooking(
@@ -40,7 +41,8 @@ public class BookingController {
                 request.receptionistId(),
                 request.startDate(),
                 request.endDate(),
-                request.totalAmount()
+                request.totalAmount(),
+                idempotencyKey
         );
         return ResponseEntity.status(HttpStatus.CREATED).body(response);
 

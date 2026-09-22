@@ -1,11 +1,11 @@
 package com.roshan.hotel.domain;
 
 import com.roshan.hotel.enums.BookingStatus;
-import com.roshan.hotel.exception.BookingNotFoundException;
 import com.roshan.hotel.exception.InvalidBookingStateException;
 import jakarta.persistence.*;
 
 import java.math.BigDecimal;
+import java.time.Instant;
 import java.time.LocalDate;
 
 
@@ -41,22 +41,32 @@ public class Booking {
     @Enumerated(EnumType.STRING)
     private BookingStatus status;
 
+    @Column(name = "expires_at")
+    private Instant expiresAt;
+
     protected Booking(){
     }
 
-    public Booking( Guest guest, Room room, Receptionist receptionist, LocalDate startDate, LocalDate endDate, BigDecimal totalAmount) {
-        this.guest = guest;
-        this.room = room;
-        this.receptionist = receptionist;
+    public Booking( Guest guest, Room room, Receptionist receptionist, LocalDate startDate, LocalDate endDate, BigDecimal totalAmount, Instant expiresAt) {
 
         if(totalAmount==null || totalAmount.signum() <= 0 ){
             throw new IllegalArgumentException("Booking amount must be greater than 0");
         }
+
+        if(expiresAt == null){
+            throw new IllegalArgumentException(
+                    "Booking expiration cannot be null"
+            );
+        }
+
+        this.guest = guest;
+        this.room = room;
+        this.receptionist = receptionist;
         this.totalAmount = totalAmount;
-
         updateDates(startDate,endDate);
+        this.status = BookingStatus.PENDING_PAYMENT;
+        this.expiresAt = expiresAt;
 
-        this.status = BookingStatus.PENDING;
     }
 
     public long getId() {
@@ -87,6 +97,10 @@ public class Booking {
         return status;
     }
 
+    public Instant getExpiresAt() {
+        return expiresAt;
+    }
+
     public BigDecimal getTotalAmount() {
         return totalAmount;
     }
@@ -102,12 +116,45 @@ public class Booking {
         this.endDate = endDate;
     }
 
-    public void markConfirmed(){
-        if(status != BookingStatus.PENDING){
+    public void confirmPayment(Instant confirmedAt){
+
+        if(status != BookingStatus.PENDING_PAYMENT){
             throw new InvalidBookingStateException("Only pending bookings can be confirmed");
         }
+
+        if (confirmedAt == null ){
+            throw new IllegalArgumentException("Payment confirmation time cannot be null");
+        }
+
+        if(!confirmedAt.isBefore(expiresAt)){
+            throw new InvalidBookingStateException("Payment confirmation arrived after reservation expired");
+        }
+
         this.status = BookingStatus.CONFIRMED;
     }
+
+    public void expire(Instant now){
+        if(status != BookingStatus.PENDING_PAYMENT){
+            return;
+        }
+
+        if(now.isBefore((expiresAt))){
+            return;
+        }
+
+        this.status = BookingStatus.EXPIRED;
+    }
+
+    public boolean blocksInventory(Instant now){
+        if(status == BookingStatus.CONFIRMED || status == BookingStatus.CHECKED_IN){
+            return true;
+        }
+        if(status == BookingStatus.PENDING_PAYMENT){
+            return now.isBefore(expiresAt);
+        }
+        return false;
+    }
+
     public void markCheckedIn(){
         if(status != BookingStatus.CONFIRMED){
             throw new InvalidBookingStateException(("Only confirmed guests can check in"));
@@ -121,7 +168,7 @@ public class Booking {
         this.status = BookingStatus.CHECKED_OUT;
     }
     public void markCancelled(){
-        if(status != BookingStatus.PENDING && status != BookingStatus.CONFIRMED){
+        if(status != BookingStatus.PENDING_PAYMENT && status != BookingStatus.CONFIRMED){
             throw new InvalidBookingStateException("Only pending or confirmed bookings can be cancelled");
         }
         this.status = BookingStatus.CANCELLED;
