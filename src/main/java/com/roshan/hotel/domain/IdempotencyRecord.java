@@ -1,5 +1,6 @@
 package com.roshan.hotel.domain;
 
+import com.roshan.hotel.enums.IdempotencyOperation;
 import com.roshan.hotel.enums.IdempotencyStatus;
 import jakarta.persistence.*;
 import java.time.Instant;
@@ -9,8 +10,8 @@ import java.time.Instant;
         name = "idempotency_records",
         uniqueConstraints = {
                 @UniqueConstraint(
-                        name = "uk_idempotency_key",
-                        columnNames = "idempotency_key"
+                        name = "uk_idempotency_operation_key",
+                        columnNames = {"operation_type","idempotency_key"}
                 )
         }
 )
@@ -36,14 +37,20 @@ public class IdempotencyRecord {
     @Column(name = "created_at", nullable = false)
     private Instant createdAt;
 
+    @Enumerated(EnumType.STRING)
+    @Column(name = "operation_type", nullable = false)
+    private IdempotencyOperation operationType;
+
     protected IdempotencyRecord() {
     }
 
     public IdempotencyRecord(
+            IdempotencyOperation operationType,
             String idempotencyKey,
             String requestHash,
             Instant createdAt) {
 
+        this.operationType = operationType;
         this.idempotencyKey = idempotencyKey;
         this.requestHash = requestHash;
         this.createdAt = createdAt;
@@ -73,5 +80,10 @@ public class IdempotencyRecord {
 
     public Long getResourceId() {
         return resourceId;
+
+    }
+
+    public IdempotencyOperation getOperationType() {
+        return operationType;
     }
 }

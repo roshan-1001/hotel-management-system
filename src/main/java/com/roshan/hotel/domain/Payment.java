@@ -75,7 +75,7 @@ public class Payment {
             );
         }
 
-        status = PaymentStatus.COMPLETED;
+        status = PaymentStatus.SUCCESS;
     }
 
     public void markFailed() {

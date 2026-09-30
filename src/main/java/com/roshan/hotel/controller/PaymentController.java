@@ -6,6 +6,7 @@ import com.roshan.hotel.service.PaymentService;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.PathVariable;
+import org.springframework.web.bind.annotation.RequestHeader;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RestController;
 
@@ -20,14 +21,14 @@ public class PaymentController {
     }
 
     @RequestMapping("/partial")
-    public ResponseEntity<PaymentResponse> makePartialPayment(@PathVariable long bookingId){
-        PaymentResponse paymentResponse = paymentService.makePartialPayment(bookingId);
+    public ResponseEntity<PaymentResponse> makePartialPayment(@PathVariable long bookingId, @RequestHeader("Idempotency-key") String idempotencyKey){
+        PaymentResponse paymentResponse = paymentService.makePartialPayment(bookingId, idempotencyKey);
         return ResponseEntity.status(HttpStatus.CREATED).body(paymentResponse);
     }
 
     @RequestMapping("/full")
-    public ResponseEntity<PaymentResponse> makeFullPayment(@PathVariable long bookingId){
-        PaymentResponse paymentResponse = paymentService.makeFullPayment(bookingId);
+    public ResponseEntity<PaymentResponse> makeFullPayment(@PathVariable long bookingId, @RequestHeader("Idempotency-Key") String idempotencyKey){
+        PaymentResponse paymentResponse = paymentService.makeFullPayment(bookingId, idempotencyKey);
         return ResponseEntity.status(HttpStatus.CREATED).body(paymentResponse);
     }
 

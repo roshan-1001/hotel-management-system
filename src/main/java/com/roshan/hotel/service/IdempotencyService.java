@@ -1,6 +1,7 @@
 package com.roshan.hotel.service;
 
 import com.roshan.hotel.domain.IdempotencyRecord;
+import com.roshan.hotel.enums.IdempotencyOperation;
 import com.roshan.hotel.repository.IdempotencyRecordRepository;
 import org.springframework.stereotype.Service;
 
@@ -17,14 +18,14 @@ public class IdempotencyService {
         this.clock = clock;
     }
 
-    public boolean claim(String idempotencyKey, String requestHash) {
+    public boolean claim(IdempotencyOperation operationType, String idempotencyKey, String requestHash) {
 
-        int inserted = repository.claim(idempotencyKey, requestHash, clock.instant());
+        int inserted = repository.claim(operationType, idempotencyKey, requestHash, clock.instant());
         return inserted == 1;
     }
 
-    public IdempotencyRecord get(String idempotencyKey) {
-        return repository.findByIdempotencyKey(idempotencyKey)
+    public IdempotencyRecord get(IdempotencyOperation operationType, String idempotencyKey) {
+        return repository.findByIdempotencyKey(operationType, idempotencyKey)
                 .orElseThrow(() ->
                         new IllegalStateException(
                                 "Idempotency record not found: " + idempotencyKey
@@ -33,10 +34,11 @@ public class IdempotencyService {
     }
 
     public void complete(
+            IdempotencyOperation operationType,
             String idempotencyKey,
             Long resourceId) {
 
-        IdempotencyRecord record = get(idempotencyKey);
+        IdempotencyRecord record = get(operationType,idempotencyKey);
         record.complete(resourceId);
     }
 }

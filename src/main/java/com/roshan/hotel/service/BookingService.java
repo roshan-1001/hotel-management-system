@@ -3,6 +3,7 @@ package com.roshan.hotel.service;
 import com.roshan.hotel.domain.*;
 import com.roshan.hotel.dto.BookingResponse;
 import com.roshan.hotel.enums.BookingStatus;
+import com.roshan.hotel.enums.IdempotencyOperation;
 import com.roshan.hotel.enums.IdempotencyStatus;
 import com.roshan.hotel.exception.*;
 import com.roshan.hotel.repository.BookingRepository;
@@ -127,6 +128,7 @@ public class BookingService {
         );
 
         boolean claimed = idempotencyService.claim(
+                IdempotencyOperation.BOOKING,
                 idempotencyKey,
                 requestHash
         );
@@ -151,6 +153,7 @@ public class BookingService {
         Booking savedBooking = bookingRepository.save(booking);
 
         idempotencyService.complete(
+                IdempotencyOperation.BOOKING,
                 idempotencyKey,
                 savedBooking.getId()
         );
@@ -247,7 +250,7 @@ public class BookingService {
             String requestHash) {
 
         IdempotencyRecord record =
-                idempotencyService.get(idempotencyKey);
+                idempotencyService.get(IdempotencyOperation.BOOKING ,idempotencyKey);
 
         if (!record.getRequestHash().equals(requestHash)) {
             throw new IdempotencyConflictException(

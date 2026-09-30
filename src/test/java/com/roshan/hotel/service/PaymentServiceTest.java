@@ -96,7 +96,7 @@ class PaymentServiceTest {
         );
 
         assertEquals(
-                PaymentStatus.COMPLETED,
+                PaymentStatus.SUCCESS,
                 savedPayment.getStatus()
         );
 
@@ -202,7 +202,7 @@ class PaymentServiceTest {
         );
 
         assertEquals(
-                PaymentStatus.COMPLETED,
+                PaymentStatus.SUCCESS,
                 response.status()
         );
 
@@ -220,7 +220,7 @@ class PaymentServiceTest {
         );
 
         assertEquals(
-                PaymentStatus.COMPLETED,
+                PaymentStatus.SUCCESS,
                 savedPayment.getStatus()
         );
 
@@ -283,7 +283,7 @@ class PaymentServiceTest {
         );
 
         assertEquals(
-                PaymentStatus.COMPLETED,
+                PaymentStatus.SUCCESS,
                 response.status()
         );
 
@@ -301,7 +301,7 @@ class PaymentServiceTest {
         );
 
         assertEquals(
-                PaymentStatus.COMPLETED,
+                PaymentStatus.SUCCESS,
                 savedPayment.getStatus()
         );
 
