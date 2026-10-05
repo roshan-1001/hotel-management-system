@@ -13,7 +13,7 @@ import java.util.Optional;
 public interface IdempotencyRecordRepository
         extends JpaRepository<IdempotencyRecord, Long> {
 
-    Optional<IdempotencyRecord> findByIdempotencyKey(
+    Optional<IdempotencyRecord> findByOperationTypeAndIdempotencyKey(
             IdempotencyOperation operationType,
             String idempotencyKey
     );
@@ -27,7 +27,7 @@ public interface IdempotencyRecordRepository
     ON CONFLICT (operation_type, idempotency_key) DO NOTHING
     """, nativeQuery = true)
     int claim(
-            @Param("operationType") IdempotencyOperation operationType,
+            @Param("operationType") String operationType,
             @Param("key") String key,
             @Param("requestHash") String requestHash,
             @Param("createdAt") Instant createdAt

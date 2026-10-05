@@ -20,12 +20,12 @@ public class IdempotencyService {
 
     public boolean claim(IdempotencyOperation operationType, String idempotencyKey, String requestHash) {
 
-        int inserted = repository.claim(operationType, idempotencyKey, requestHash, clock.instant());
+        int inserted = repository.claim(operationType.name(), idempotencyKey, requestHash, clock.instant());
         return inserted == 1;
     }
 
     public IdempotencyRecord get(IdempotencyOperation operationType, String idempotencyKey) {
-        return repository.findByIdempotencyKey(operationType, idempotencyKey)
+        return repository.findByOperationTypeAndIdempotencyKey(operationType, idempotencyKey)
                 .orElseThrow(() ->
                         new IllegalStateException(
                                 "Idempotency record not found: " + idempotencyKey
