@@ -16,6 +16,7 @@ import org.springframework.data.domain.Pageable;
 import org.springframework.data.jpa.domain.Specification;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
+import org.springframework.security.access.prepost.PreAuthorize;
 
 import java.math.BigDecimal;
 import java.nio.charset.StandardCharsets;
@@ -81,6 +82,7 @@ public class BookingService {
         }
     }
 
+    @PreAuthorize("hasAnyRole('ADMIN', 'RECEPTIONIST')")
     @Transactional
     public BookingResponse checkIn (long bookingId){
 
@@ -91,6 +93,7 @@ public class BookingService {
 
     }
 
+    @PreAuthorize("hasAnyRole('ADMIN', 'RECEPTIONIST')")
     @Transactional
     public BookingResponse checkOut (long bookingId){
 
@@ -99,6 +102,8 @@ public class BookingService {
         return toResponse(booking);
 
     }
+
+    @PreAuthorize("hasAnyRole('ADMIN', 'RECEPTIONIST')")
     @Transactional
     public BookingResponse cancelBooking (long bookingId){
 
@@ -108,6 +113,7 @@ public class BookingService {
 
     }
 
+    @PreAuthorize("hasAnyRole('ADMIN', 'RECEPTIONIST')")
     public BookingResponse getBookingResponse(long id){
 
         Booking booking = bookingRepository.findById(id).orElseThrow(()-> new BookingNotFoundException("Booking not found: " + id));
@@ -115,6 +121,7 @@ public class BookingService {
         return  toResponse(booking);
     }
 
+    @PreAuthorize("hasAnyRole('ADMIN', 'RECEPTIONIST')")
     @Transactional
     public BookingResponse createBooking(int guestId, int roomNumber, int receptionistId, LocalDate startDate, LocalDate endDate, BigDecimal totalAmount, String idempotencyKey){
 
@@ -161,6 +168,7 @@ public class BookingService {
         return toResponse(savedBooking);
     }
 
+    @PreAuthorize("hasAnyRole('ADMIN', 'RECEPTIONIST')")
     @Transactional(readOnly = true)
     public Page<BookingResponse> getBookings(BookingStatus status,Integer roomNumber, Pageable pageable){
 
