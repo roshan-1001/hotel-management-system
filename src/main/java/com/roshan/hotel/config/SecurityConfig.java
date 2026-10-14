@@ -98,6 +98,7 @@ public class SecurityConfig {
                         .requestMatchers("/payments/**")
                         .hasAnyRole("ADMIN", "RECEPTIONIST")
 
+                        .requestMatchers("/actuator/health", "/actuator/health/**").permitAll()
                         .anyRequest().authenticated()
                 )
 

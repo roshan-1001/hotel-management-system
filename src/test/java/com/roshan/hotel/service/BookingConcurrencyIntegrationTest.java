@@ -13,14 +13,23 @@ import com.roshan.hotel.repository.RoomRepository;
 import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.context.SpringBootTest;
+import org.springframework.test.context.ActiveProfiles;
 
 import java.math.BigDecimal;
 import java.time.LocalDate;
 import java.util.concurrent.*;
 
+import org.springframework.security.core.context.SecurityContext;
+import org.springframework.security.core.context.SecurityContextHolder;
+import org.springframework.security.authentication.UsernamePasswordAuthenticationToken;
+import org.springframework.security.core.authority.SimpleGrantedAuthority;
+
+import java.util.List;
+
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.fail;
 
+@ActiveProfiles("test")
 @SpringBootTest
 class BookingConcurrencyIntegrationTest {
 
@@ -78,34 +87,65 @@ class BookingConcurrencyIntegrationTest {
                 Executors.newFixedThreadPool(2);
 
         Callable<BookingResponse> requestA = () -> {
+            SecurityContext context = SecurityContextHolder.createEmptyContext();
 
-            start.await();
-
-            return bookingService.createBooking(
-                    guestId,
-                    roomNumber,
-                    receptionistId,
-                    LocalDate.of(2026, 10, 10),
-                    LocalDate.of(2026, 10, 15),
-                    new BigDecimal("10000"),
-                    "concurrency-test-A-" + id
+            context.setAuthentication(
+                    new UsernamePasswordAuthenticationToken(
+                            "integration-test",
+                            "N/A",
+                            List.of(new SimpleGrantedAuthority("ROLE_RECEPTIONIST"))
+                    )
             );
+
+            SecurityContextHolder.setContext(context);
+
+            try {
+                start.await();
+
+                return bookingService.createBooking(
+                        guestId,
+                        roomNumber,
+                        receptionistId,
+                        LocalDate.of(2026, 10, 10),
+                        LocalDate.of(2026, 10, 15),
+                        new BigDecimal("10000"),
+                        "concurrency-test-A-" + id
+                );
+            } finally {
+                SecurityContextHolder.clearContext();
+            }
+
         };
 
 
         Callable<BookingResponse> requestB = () -> {
+            SecurityContext context = SecurityContextHolder.createEmptyContext();
 
-            start.await();
-
-            return bookingService.createBooking(
-                    guestId,
-                    roomNumber,
-                    receptionistId,
-                    LocalDate.of(2026, 10, 10),
-                    LocalDate.of(2026, 10, 15),
-                    new BigDecimal("10000"),
-                    "concurrency-test-B-" + id
+            context.setAuthentication(
+                    new UsernamePasswordAuthenticationToken(
+                            "integration-test",
+                            "N/A",
+                            List.of(new SimpleGrantedAuthority("ROLE_RECEPTIONIST"))
+                    )
             );
+
+            SecurityContextHolder.setContext(context);
+
+            try {
+                start.await();
+
+                return bookingService.createBooking(
+                        guestId,
+                        roomNumber,
+                        receptionistId,
+                        LocalDate.of(2026, 10, 10),
+                        LocalDate.of(2026, 10, 15),
+                        new BigDecimal("10000"),
+                        "concurrency-test-B-" + id
+                );
+            } finally {
+                SecurityContextHolder.clearContext();
+            }
         };
 
 
